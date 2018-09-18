@@ -9,17 +9,22 @@
 namespace App;
 
 use Closure;
-use DateTime;
 
 class MyOrderModel implements IOrderModel
 {
+    /**
+     * @var IRepository
+     */
+    private $repository;
+
+    public function __construct(IRepository $repository)
+    {
+        $this->repository = $repository;
+    }
+
     public function save(MyOrder $order, Closure $insertCallback, Closure $updateCallback)
     {
-        if (!$this->repository->isExists($order)) {
-            $now = new DateTime('now');
-            if ($now->format('w') === '0') {
-                $order->amount += 100;
-            }
+        if (!$this->repository->isExist($order)) {
             $this->repository->insert($order);
             $insertCallback($order);
         }
