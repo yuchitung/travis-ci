@@ -11,6 +11,7 @@ namespace Tests {
     use App\AuthenticationService;
     use App\IProfile;
     use App\IToken;
+    use Mockery\MockInterface;
     use PHPUnit\Framework\TestCase;
 
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -18,42 +19,48 @@ namespace Tests {
 
     class AuthenticationServiceTest extends TestCase
     {
+        /**
+         * @var MockInterface
+         */
+        private $stubProfile;
+        /**
+         * @var MockInterface
+         */
+        private $stubToken;
+        /**
+         * @var AuthenticationService
+         */
+        private $target;
+
+        protected function setUp()
+        {
+            $this->stubProfile = m::mock(IProfile::class);
+            $this->stubToken = m::mock(IToken::class);
+            $this->target = new AuthenticationService($this->stubProfile, $this->stubToken);
+        }
+
         /** @test */
         public function is_valid_test()
         {
-            $stubProfile = m::mock(IProfile::class);
-            $stubProfile->shouldReceive('getPassword')->with('joey')->andReturn('91');
+            $this->givenProfile('joey', '91');
+            $this->givenToken('000000');
 
-            $stubToken = m::mock(IToken::class);
-            $stubToken->shouldReceive('getRandom')->andReturn('000000');
+            $this->shouldBeValid('joey', '91000000');
+        }
 
-//            $target = new AuthenticationService(new FakeProfile(), new FakeToken());
-            $target = new AuthenticationService($stubProfile, $stubToken);
-            $actual = $target->isValid('joey', '91000000');
+        private function givenProfile($account, $password)
+        {
+            $this->stubProfile->shouldReceive('getPassword')->with($account)->andReturn($password);
+        }
 
-            $this->assertTrue($actual);
+        private function givenToken($token)
+        {
+            $this->stubToken->shouldReceive('getRandom')->andReturn($token);
+        }
+
+        private function shouldBeValid($account, $password)
+        {
+            $this->assertTrue($this->target->isValid($account, $password));
         }
     }
 }
-
-//namespace App {
-//    class FakeProfile implements IProfile
-//    {
-//        public function getPassword($account)
-//        {
-//            if ($account == 'joey') {
-//                return '91';
-//            }
-//
-//            return '';
-//        }
-//    }
-//
-//    class FakeToken implements IToken
-//    {
-//        public function getRandom($account)
-//        {
-//            return '000000';
-//        }
-//    }
-//}
