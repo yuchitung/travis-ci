@@ -20,7 +20,7 @@ namespace Tests {
     {
         use MockeryPHPUnitIntegration;
         /**
-         * @var OrderServiceForTest
+         * @var m\MockInterface
          */
         private $target;
         /**
@@ -30,9 +30,12 @@ namespace Tests {
 
         protected function setUp()
         {
-            $this->target = new OrderServiceForTest();
+//            $this->target = new OrderServiceForTest();
+            $this->target = m::mock(OrderService::class)->makePartial();
+            $this->target->shouldAllowMockingProtectedMethods();
+
             $this->spyBookDao = m::spy(IBookDao::class);
-            $this->target->setBookDao($this->spyBookDao);
+            $this->target->shouldReceive('getBookDao')->andReturn($this->spyBookDao);
         }
 
         public function test_sync_book_orders_3_orders_only_2_book_order()
@@ -68,7 +71,8 @@ namespace Tests {
                 $i++;
             }
 
-            $this->target->setOrders($orders);
+            $this->target->shouldReceive('getOrders')->andReturn($orders);
+//            $this->target->setOrders($orders);
         }
 
         private function bookDaoShouldInsertTimes($times)
@@ -79,31 +83,31 @@ namespace Tests {
         }
     }
 }
-
-namespace App {
-    class OrderServiceForTest extends OrderService
-    {
-        private $orders;
-        private $bookDao;
-
-        public function setBookDao($bookDao)
-        {
-            $this->bookDao = $bookDao;
-        }
-
-        protected function getBookDao()
-        {
-            return $this->bookDao;
-        }
-
-        public function setOrders($orders)
-        {
-            $this->orders = $orders;
-        }
-
-        protected function getOrders()
-        {
-            return $this->orders;
-        }
-    }
-}
+//
+//namespace App {
+//    class OrderServiceForTest extends OrderService
+//    {
+//        private $orders;
+//        private $bookDao;
+//
+//        public function setBookDao($bookDao)
+//        {
+//            $this->bookDao = $bookDao;
+//        }
+//
+//        protected function getBookDao()
+//        {
+//            return $this->bookDao;
+//        }
+//
+//        public function setOrders($orders)
+//        {
+//            $this->orders = $orders;
+//        }
+//
+//        protected function getOrders()
+//        {
+//            return $this->orders;
+//        }
+//    }
+//}
