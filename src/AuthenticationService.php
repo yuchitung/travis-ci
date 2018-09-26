@@ -18,15 +18,21 @@ namespace App {
          * @var IToken
          */
         private $token;
+        /**
+         * @var ILogger
+         */
+        private $logger;
 
         /**
          * @param IProfile $profile
          * @param IToken $token
+         * @param ILogger|null $logger
          */
-        public function __construct(IProfile $profile = null, IToken $token = null)
+        public function __construct(IProfile $profile = null, IToken $token = null, ILogger $logger = null)
         {
             $this->profile = $profile ?: new ProfileDao();
             $this->token = $token ?: new RsaTokenDao();
+            $this->logger = $logger;
         }
 
         public function isValid($account, $password)
@@ -47,6 +53,8 @@ namespace App {
                 return true;
             }
             else {
+                $this->logger->save(sprintf('account: %s try to login failed', $account));
+
                 return false;
             }
         }
