@@ -59,9 +59,7 @@ namespace Tests {
             $this->givenProfile('joey', '91');
             $this->givenToken('000000');
 
-            $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) {
-                return strpos($message, 'joey') !== false;
-            }))->once();
+            $this->loggerShouldLogAccount('joey');
 
             $this->target->isValid('joey', 'wrong password');
         }
@@ -79,6 +77,13 @@ namespace Tests {
         private function shouldBeValid($account, $password)
         {
             $this->assertTrue($this->target->isValid($account, $password));
+        }
+
+        private function loggerShouldLogAccount($account)
+        {
+            $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) use ($account) {
+                return strpos($message, $account) !== false;
+            }))->once();
         }
     }
 }
