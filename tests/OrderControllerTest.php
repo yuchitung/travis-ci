@@ -19,22 +19,24 @@ use Mockery as m;
 class OrderControllerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
+    private $model;
+    private $orderController;
+
+    protected function setUp()
+    {
+        $this->model = m::mock(IOrderModel::class);
+        $this->orderController = new OrderController($this->model);
+    }
 
     /** @test */
     public function exist_order_should_update()
     {
-        $model = m::mock(IOrderModel::class);
-        $orderController = new OrderController($model);
+        $this->givenInvokeUpdateCallback();
 
-        $model->shouldReceive('save')
-            ->andReturnUsing(function ($order, $insertCallback, $updateCallback) {
-                $updateCallback($order);
-            });
+        $myOrder = $this->createMyOrder(91, 100);
+        $this->orderController->save($myOrder);
 
-        $myOrder = new MyOrder(91, 100);
-        $orderController->save($myOrder);
-
-        $this->expectOutputString(sprintf('update order id:%s with %s successfully!', $myOrder->id, $myOrder->amount));
+        $this->shouldLog(sprintf('update order id:%s with %s successfully!', $myOrder->id, $myOrder->amount));
     }
 
     /** @test */
@@ -53,5 +55,31 @@ class OrderControllerTest extends TestCase
         $model = m::mock(IOrderModel::class);
         $orderController = new OrderController($model);
         $orderController->deleteAmountMoreThan100();
+    }
+
+    private function givenInvokeUpdateCallback()
+    {
+        $this->model->shouldReceive('save')
+            ->andReturnUsing(function ($order, $insertCallback, $updateCallback) {
+                $updateCallback($order);
+            });
+    }
+
+    /**
+     * @param $expectedString
+     */
+    private function shouldLog($expectedString)
+    {
+        $this->expectOutputString($expectedString);
+    }
+
+    /**
+     * @param $id
+     * @param $amount
+     * @return MyOrder
+     */
+    private function createMyOrder($id, $amount)
+    {
+        return new MyOrder($id, $amount);
     }
 }
