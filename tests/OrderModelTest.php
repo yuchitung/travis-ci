@@ -14,6 +14,7 @@ use App\MyOrderModel;
 use PHPUnit\Framework\TestCase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery as m;
+use stdClass;
 
 class OrderModelTest extends TestCase
 {
@@ -39,28 +40,11 @@ class OrderModelTest extends TestCase
     {
         $this->givenOrderIsNotExist();
 
+        $insertCallback = $this->createCallback(1);
+        $updateCallback = $this->createCallback(0);
         $this->repoShouldInsertOrder();
 
-//        $insertFlag = false;
-//        $insertFunc = function ($order) use (&$insertFlag) {
-//            $insertFlag = true;
-//        };
-//
-//        $updateFlag = false;
-//        $updateFunc = function ($order) use (&$updateFlag) {
-//            $updateFlag = true;
-//        };
-        $insertFunc = m::mock(\stdClass::class);
-        $order = new MyOrder();
-        $insertFunc->shouldReceive('call')->once();
-
-        $updateFunc = m::mock(stdClass::class);
-        $updateFunc->shouldReceive('call')->never();
-
-        $this->myOrderModel->save($order, [$insertFunc, 'call'], [$updateFunc, 'call']);
-
-//        $this->shouldInvokeInsertClosure($insertFlag);
-//        $this->shouldNotInvokeUpdateClosure($updateFlag);
+        $this->myOrderModel->save(new MyOrder(), $insertCallback, $updateCallback);
     }
 
     /** @test */
@@ -94,5 +78,18 @@ class OrderModelTest extends TestCase
     private function shouldNotInvokeUpdateClosure($updateFlag)
     {
         $this->assertFalse($updateFlag);
+    }
+
+    /**
+     * @param $expectedInvokedTimes
+     * @return array
+     */
+    private function createCallback($expectedInvokedTimes)
+    {
+        $mockCallable = m::mock(stdClass::class);
+        $mockCallable->shouldReceive('call')->times($expectedInvokedTimes);
+        $mockCallback = [$mockCallable, 'call'];
+
+        return $mockCallback;
     }
 }
