@@ -41,20 +41,26 @@ class OrderModelTest extends TestCase
 
         $this->repoShouldInsertOrder();
 
-        $insertFlag = false;
-        $insertFunc = function ($order) use (&$insertFlag) {
-            $insertFlag = true;
-        };
+//        $insertFlag = false;
+//        $insertFunc = function ($order) use (&$insertFlag) {
+//            $insertFlag = true;
+//        };
+//
+//        $updateFlag = false;
+//        $updateFunc = function ($order) use (&$updateFlag) {
+//            $updateFlag = true;
+//        };
+        $insertFunc = m::mock(\stdClass::class);
+        $order = new MyOrder();
+        $insertFunc->shouldReceive('call')->once();
 
-        $updateFlag = false;
-        $updateFunc = function ($order) use (&$updateFlag) {
-            $updateFlag = true;
-        };
+        $updateFunc = m::mock(stdClass::class);
+        $updateFunc->shouldReceive('call')->never();
 
-        $this->myOrderModel->save(new MyOrder(), $insertFunc, $updateFunc);
+        $this->myOrderModel->save($order, [$insertFunc, 'call'], [$updateFunc, 'call']);
 
-        $this->shouldInvokeInsertClosure($insertFlag);
-        $this->shouldNotInvokeUpdateClosure($updateFlag);
+//        $this->shouldInvokeInsertClosure($insertFlag);
+//        $this->shouldNotInvokeUpdateClosure($updateFlag);
     }
 
     /** @test */

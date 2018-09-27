@@ -9,6 +9,7 @@
 namespace App;
 
 use Closure;
+use phpDocumentor\Reflection\Types\Callable_;
 
 class MyOrderModel implements IOrderModel
 {
@@ -22,7 +23,7 @@ class MyOrderModel implements IOrderModel
         $this->repository = $repository;
     }
 
-    public function save(MyOrder $order, Closure $insertCallback, Closure $updateCallback)
+    public function save(MyOrder $order, callable $insertCallback, callable $updateCallback)
     {
         if (!$this->repository->isExist($order)) {
             $this->repository->insert($order);
