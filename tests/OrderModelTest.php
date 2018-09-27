@@ -22,22 +22,24 @@ class OrderModelTest extends TestCase
      * @var MockInterface
      */
     private $repository;
+    /**
+     * @var MyOrderModel
+     */
+    private $myOrderModel;
 
     protected function setUp()
     {
         parent::setUp();
         $this->repository = m::mock(IRepository::class);
+        $this->myOrderModel = new MyOrderModel($this->repository);
     }
 
     /** @test */
     public function insert_order()
     {
-        $myOrderModel = new MyOrderModel($this->repository);
-        $this->repository->shouldReceive('isExist')->andReturn(false);
+        $this->givenOrderIsNotExist();
 
-        $this->repository->shouldReceive('insert')->once();
-
-        $myOrder = new MyOrder();
+        $this->repoShouldInsertOrder();
 
         $insertFlag = false;
         $insertFunc = function ($order) use (&$insertFlag) {
@@ -49,10 +51,10 @@ class OrderModelTest extends TestCase
             $updateFlag = true;
         };
 
-        $myOrderModel->save($myOrder, $insertFunc, $updateFunc);
+        $this->myOrderModel->save(new MyOrder(), $insertFunc, $updateFunc);
 
-        $this->assertEquals(true, $insertFlag);
-        $this->assertEquals(false, $updateFlag);
+        $this->shouldInvokeInsertClosure($insertFlag);
+        $this->shouldNotInvokeUpdateClosure($updateFlag);
     }
 
     /** @test */
@@ -60,5 +62,31 @@ class OrderModelTest extends TestCase
     {
         // TODO
         $myOrderModel = new MyOrderModel($this->repository);
+    }
+
+    private function givenOrderIsNotExist()
+    {
+        $this->repository->shouldReceive('isExist')->andReturn(false);
+    }
+
+    private function repoShouldInsertOrder()
+    {
+        $this->repository->shouldReceive('insert')->once();
+    }
+
+    /**
+     * @param $insertFlag
+     */
+    private function shouldInvokeInsertClosure($insertFlag)
+    {
+        $this->assertTrue($insertFlag);
+    }
+
+    /**
+     * @param $updateFlag
+     */
+    private function shouldNotInvokeUpdateClosure($updateFlag)
+    {
+        $this->assertFalse($updateFlag);
     }
 }
