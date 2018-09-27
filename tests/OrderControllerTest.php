@@ -8,6 +8,7 @@
 
 namespace Tests;
 
+use App\FakeOrderModel;
 use App\IOrderModel;
 use App\MyOrder;
 use App\OrderController;
@@ -22,10 +23,18 @@ class OrderControllerTest extends TestCase
     /** @test */
     public function exist_order_should_update()
     {
-        // TODO
         $model = m::mock(IOrderModel::class);
         $orderController = new OrderController($model);
-        $orderController->save(new MyOrder(91, 100));
+
+        $model->shouldReceive('save')
+            ->andReturnUsing(function ($order, $insertCallback, $updateCallback) {
+                $updateCallback($order);
+            });
+
+        $myOrder = new MyOrder(91, 100);
+        $orderController->save($myOrder);
+
+        $this->expectOutputString(sprintf('update order id:%s with %s successfully!', $myOrder->id, $myOrder->amount));
     }
 
     /** @test */

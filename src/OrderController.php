@@ -33,12 +33,12 @@ namespace App {
             });
         }
 
-        private function updateMessage(Order $order)
+        private function updateMessage(MyOrder $order)
         {
             echo sprintf('update order id:%s with %s successfully!', $order->id, $order->amount);
         }
 
-        private function insertMessage(Order $order)
+        private function insertMessage(MyOrder $order)
         {
             echo sprintf('insert order id:%s with %s successfully!', $order->id, $order->amount);
         }
