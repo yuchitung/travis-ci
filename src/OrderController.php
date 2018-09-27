@@ -44,18 +44,6 @@ namespace App {
         }
     }
 
-    class MyOrder
-    {
-        public $id;
-        public $amount;
-
-        public function __construct($id = null, $amount = null)
-        {
-            $this->id = $id;
-            $this->amount = $amount;
-        }
-    }
-
     interface IRepository
     {
         public function isExist(MyOrder $order);
