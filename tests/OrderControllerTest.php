@@ -51,10 +51,17 @@ class OrderControllerTest extends TestCase
     /** @test */
     public function verify_lambda_function_of_delete()
     {
-        // TODO
-        $model = m::mock(IOrderModel::class);
+//        $model = m::mock(IOrderModel::class);
+        $model = new FakeOrderModel();
         $orderController = new OrderController($model);
         $orderController->deleteAmountMoreThan100();
+
+        $deletePredicate = $model->getDeletePredicate();
+        $myOrderAmountMoreThan100 = $this->createMyOrder(91, 101);
+        $this->assertTrue($deletePredicate($myOrderAmountMoreThan100));
+
+        $myOrderAmountLessThan100 = $this->createMyOrder(91, 100);
+        $this->assertFalse($deletePredicate($myOrderAmountLessThan100));
     }
 
     private function givenInvokeUpdateCallback()

@@ -12,8 +12,7 @@ use Closure;
 
 class FakeOrderModel implements IOrderModel
 {
-    private $insertCallback;
-    private $updateCallback;
+    private $deletePredicate;
 
     public function __construct()
     {
@@ -21,28 +20,18 @@ class FakeOrderModel implements IOrderModel
 
     public function save(MyOrder $order, callable $insertCallback, callable $updateCallback)
     {
-        $this->insertCallback = $insertCallback;
-        $this->updateCallback = $updateCallback;
     }
 
     public function delete(Closure $predicate)
     {
-        // TODO: Implement delete() method.
+        $this->deletePredicate = $predicate;
     }
 
     /**
      * @return mixed
      */
-    public function getInsertCallback()
+    public function getDeletePredicate()
     {
-        return $this->insertCallback;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getUpdateCallback()
-    {
-        return $this->updateCallback;
+        return $this->deletePredicate;
     }
 }
