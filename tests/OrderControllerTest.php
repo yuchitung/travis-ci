@@ -51,17 +51,13 @@ class OrderControllerTest extends TestCase
     /** @test */
     public function verify_lambda_function_of_delete()
     {
-//        $model = m::mock(IOrderModel::class);
-        $model = new FakeOrderModel();
-        $orderController = new OrderController($model);
-        $orderController->deleteAmountMoreThan100();
+        $deletePredicate = $this->getDeletePredicateFromArgument();
 
-        $deletePredicate = $model->getDeletePredicate();
         $myOrderAmountMoreThan100 = $this->createMyOrder(91, 101);
-        $this->assertTrue($deletePredicate($myOrderAmountMoreThan100));
+        $this->orderShouldMatchCondition($deletePredicate, $myOrderAmountMoreThan100);
 
         $myOrderAmountLessThan100 = $this->createMyOrder(91, 100);
-        $this->assertFalse($deletePredicate($myOrderAmountLessThan100));
+        $this->orderShouldNotMatchCondition($deletePredicate, $myOrderAmountLessThan100);
     }
 
     private function givenInvokeUpdateCallback()
@@ -88,5 +84,37 @@ class OrderControllerTest extends TestCase
     private function createMyOrder($id, $amount)
     {
         return new MyOrder($id, $amount);
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getDeletePredicateFromArgument()
+    {
+        $model = new FakeOrderModel();
+        $orderController = new OrderController($model);
+        $orderController->deleteAmountMoreThan100();
+
+        $deletePredicate = $model->getDeletePredicate();
+
+        return $deletePredicate;
+    }
+
+    /**
+     * @param $deletePredicate
+     * @param $myOrderAmountMoreThan100
+     */
+    private function orderShouldMatchCondition($deletePredicate, $myOrderAmountMoreThan100)
+    {
+        $this->assertTrue($deletePredicate($myOrderAmountMoreThan100));
+    }
+
+    /**
+     * @param $deletePredicate
+     * @param $myOrderAmountLessThan100
+     */
+    private function orderShouldNotMatchCondition($deletePredicate, $myOrderAmountLessThan100)
+    {
+        $this->assertFalse($deletePredicate($myOrderAmountLessThan100));
     }
 }
