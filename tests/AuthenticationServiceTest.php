@@ -42,7 +42,7 @@ namespace Tests {
         {
             $this->stubProfile = m::mock(IProfile::class);
             $this->stubToken = m::mock(IToken::class);
-            $this->mockLogger = m::mock(ILogger::class);
+            $this->mockLogger = m::spy(ILogger::class);
             $this->target = new AuthenticationService($this->stubProfile, $this->stubToken, $this->mockLogger);
         }
 
@@ -59,9 +59,8 @@ namespace Tests {
             $this->givenProfile('joey', '91');
             $this->givenToken('000000');
 
-            $this->loggerShouldLogAccount('joey');
-
             $this->target->isValid('joey', 'wrong password');
+            $this->loggerShouldLogAccount('joey');
         }
 
         private function givenProfile($account, $password)
@@ -81,7 +80,7 @@ namespace Tests {
 
         private function loggerShouldLogAccount($account)
         {
-            $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) use ($account) {
+            $this->mockLogger->shouldHaveReceived('save')->with(m::on(function ($message) use ($account) {
                 return strpos($message, $account) !== false;
             }))->once();
         }
