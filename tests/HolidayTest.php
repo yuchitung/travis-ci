@@ -20,19 +20,8 @@ class HolidayTest extends TestCase
      */
     public function today_is_Xms()
     {
-        /**
-         * arrange
-         */
-        $this->holiday->setToday('12-25');
-        /**
-         * act
-         */
-        $actual = $this->holiday->sayHello();
-
-        /**
-         * assert
-         */
-        $this->assertEquals("Merry X'mas", $actual);
+        $this->givenDate(12, 25);
+        $this->shouldBe("Merry X'mas");
     }
 
     /**
@@ -40,24 +29,34 @@ class HolidayTest extends TestCase
      */
     public function today_is_not_Xmas()
     {
+        $this->givenDate(12, 26);
+        $this->shouldBe("Today is not X'mas");
+    }
+
+    protected function givenDate($month, $day): void
+    {
         /**
          * arrange
          */
-        $this->holiday->setToday('12-26');
+        $this->holiday->setToday($month . '-' . $day);
+    }
+
+    protected function shouldBe($expected): void
+    {
         /**
          * act
          */
         $actual = $this->holiday->sayHello();
+
         /**
          * assert
          */
-        $this->assertEquals("Today is not X'mas", $actual);
+        $this->assertEquals($expected, $actual);
     }
 }
 
 class HolidayForTest extends Holiday
 {
-
     private $today;
 
     public function setToday(string $date)
