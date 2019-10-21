@@ -8,16 +8,36 @@
 
 namespace App {
 
+    /**
+     * Class AuthenticationService
+     * 重構重點：
+     * 1. 把依賴抽出，改由 constructor 注入
+     * 2. 為依賴建立一個 interface , 改成依賴這個 interface
+     * @package App
+     */
     class AuthenticationService
     {
+        /**
+         * @var IProfile
+         */
+        private $profile;
+        /**
+         * @var IToken
+         */
+        private $token;
+
+        public function __construct(IProfile $profileDao = null, IToken $rsaTokenDao = null)
+        {
+            $this->profile = $profileDao ?: new $profileDao();
+            $this->token = $rsaTokenDao ?: new $rsaTokenDao();
+        }
+
         public function isValid($account, $password)
         {
             // 根據 account 取得自訂密碼
-            $profileDao = new ProfileDao();
-            $passwordFromDao = $profileDao->getPassword($account);
+            $passwordFromDao = $this->profile->getPassword($account);
             // 根據 account 取得 RSA token 目前的亂數
-            $rsaToken = new RsaTokenDao();
-            $randomCode = $rsaToken->getRandom($account);
+            $randomCode = $this->token->getRandom($account);
 
             var_dump($randomCode);
 
@@ -27,14 +47,13 @@ namespace App {
 
             if ($isValid) {
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         }
     }
 
-    class ProfileDao
+    class ProfileDao implements IProfile
     {
         public function getPassword($account)
         {
@@ -42,7 +61,7 @@ namespace App {
         }
     }
 
-    class RsaTokenDao
+    class RsaTokenDao implements IToken
     {
         public function getRandom($account)
         {
