@@ -10,9 +10,6 @@ namespace App {
 
     /**
      * Class AuthenticationService
-     * 重構重點：
-     * 1. 把依賴抽出，改由 constructor 注入
-     * 2. 為依賴建立一個 interface , 改成依賴這個 interface
      * @package App
      */
     class AuthenticationService
@@ -26,10 +23,16 @@ namespace App {
          */
         private $token;
 
-        public function __construct(IProfile $profileDao = null, IToken $rsaTokenDao = null)
+        /**
+         * @var ILogger
+         */
+        private $logger;
+
+        public function __construct(IProfile $profileDao = null, IToken $rsaTokenDao = null, ILogger $logger = null)
         {
             $this->profile = $profileDao ?: new $profileDao();
             $this->token = $rsaTokenDao ?: new $rsaTokenDao();
+            $this->logger = $logger;
         }
 
         public function isValid($account, $password)
@@ -48,6 +51,7 @@ namespace App {
             if ($isValid) {
                 return true;
             } else {
+                $this->logger->save(sprintf('account: %s try to login failed', $account));
                 return false;
             }
         }
