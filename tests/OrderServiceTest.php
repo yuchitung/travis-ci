@@ -35,13 +35,13 @@ namespace Tests {
             $stubOrers = [$order1, $order2, $order3];
             $orderServiceForTest->setOrders($stubOrers);
 
-            $mockBookDao = m::mock(IBookDao::class);
-            $orderServiceForTest->setBookDao($mockBookDao);
-            $mockBookDao->shouldReceive('insert')->with(m::on(function (Order $order) {
+            $spyBookDao = m::spy(IBookDao::class);
+            $orderServiceForTest->setBookDao($spyBookDao);
+            $orderServiceForTest->syncBookOrders();
+
+            $spyBookDao->shouldHaveReceived('insert')->with(m::on(function (Order $order) {
                 return $order->type === 'Book';
             }))->times(2);
-
-            $orderServiceForTest->syncBookOrders();
         }
     }
 
