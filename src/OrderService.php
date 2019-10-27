@@ -21,13 +21,23 @@ namespace App {
             $ordersOfBook = array_filter($orders, function ($order) {
                 return $order->type === 'Book';
             });
-            $bookDao = new BookDao();
+            /**
+             * point: 利用 extract & override 隔絕對 bookDao 的依賴
+             */
+            $bookDao = $this->getBookDao();
+
+            /**
+             * 真正要測的地方
+             */
             foreach ($ordersOfBook as $order) {
                 $bookDao->insert($order);
             }
         }
 
-        private function getOrders()
+        /**
+         * point: 測試時要利用 override 隔絕 Order 依賴
+         */
+        protected function getOrders()
         {
             // parse csv file to get orders
             return array_map(function ($line) {
@@ -45,6 +55,16 @@ namespace App {
 
             return $order;
         }
+
+        /**
+         * point: 測試時要利用 override 隔絕 BookDao 的依賴
+         * @return IBookDao
+         */
+        protected function getBookDao(): IBookDao
+        {
+            $bookDao = new BookDao();
+            return $bookDao;
+        }
     }
 
     class Order
@@ -55,7 +75,7 @@ namespace App {
         public $customerName;
     }
 
-    class BookDao
+    class BookDao implements IBookDao
     {
         public function insert(Order $order)
         {
