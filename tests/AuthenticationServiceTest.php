@@ -20,20 +20,20 @@ use Mockery as m;
 
 class AuthenticationServiceTest extends TestCase
 {
-    private $profile;
-    private $token;
+    private $stubProfile;
+    private $stubToken;
     private $target;
-    private $mockLogger;
+    private $spyLogger;
 
     use MockeryPHPUnitIntegration;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->profile = m::mock(IProfile::class);
-        $this->token = m::mock(IToken::class);
-        $this->mockLogger = m::mock(ILogger::class);
-        $this->target = new AuthenticationService($this->profile, $this->token, $this->mockLogger);
+        $this->stubProfile = m::mock(IProfile::class);
+        $this->stubToken = m::mock(IToken::class);
+        $this->spyLogger = m::spy(ILogger::class);
+        $this->target = new AuthenticationService($this->stubProfile, $this->stubToken, $this->spyLogger);
     }
 
     /** @test */
@@ -47,26 +47,25 @@ class AuthenticationServiceTest extends TestCase
     /** @test */
     public function should_log_account_when_invalid()
     {
+        $this->whenInvalid();
 
-        $this->givenPassword('joey', '91');
-        $this->givenToken('000000');
         /**
-         * Mock
-         * act 之前先定義合法操作
-         * 如果有`任何`跟定義不同的情況就會噴錯
+         * Spy
+         * 後置驗證，接近 3A 原則，做完才驗證
+         * 只驗證在乎的事情，其他沒驗的東西無所謂
+         * 測試比較沒那麼敏感，必較不容易壞
          */
         $this->loggerShouldLogAccount('joey');
-        $this->target->isValid('joey', 'wrong password');
     }
 
     protected function givenPassword($account, $password): void
     {
-        $this->profile->shouldReceive('getPassword')->with($account)->andReturn($password);
+        $this->stubProfile->shouldReceive('getPassword')->with($account)->andReturn($password);
     }
 
     protected function givenToken($token): void
     {
-        $this->token->shouldReceive('getRandom')->andReturn($token);
+        $this->stubToken->shouldReceive('getRandom')->andReturn($token);
     }
 
     protected function shouldBeValid($account, $password): void
@@ -77,9 +76,16 @@ class AuthenticationServiceTest extends TestCase
 
     protected function loggerShouldLogAccount($account): void
     {
-        $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) use ($account) {
+        $this->spyLogger->shouldHaveReceived('save')->with(m::on(function ($message) use ($account) {
             return strpos($message, $account) !== false;
         }))->once();
+    }
+
+    protected function whenInvalid(): void
+    {
+        $this->givenPassword('joey', '91');
+        $this->givenToken('000000');
+        $this->target->isValid('joey', 'wrong password');
     }
 
 }
