@@ -12,9 +12,11 @@ use App\AuthenticationService;
 use App\ILogger;
 use App\IProfile;
 use App\IToken;
+use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery as m;
+
 
 class AuthenticationServiceTest extends TestCase
 {
@@ -22,6 +24,8 @@ class AuthenticationServiceTest extends TestCase
     private $token;
     private $target;
     private $mockLogger;
+
+    use MockeryPHPUnitIntegration;
 
     protected function setUp()
     {
@@ -43,13 +47,15 @@ class AuthenticationServiceTest extends TestCase
     /** @test */
     public function should_log_account_when_invalid()
     {
+
         $this->givenPassword('joey', '91');
         $this->givenToken('000000');
-
-        $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) {
-            return strpos($message, 'joey') !== false;
-        }))->once();
-
+        /**
+         * Mock
+         * act 之前先定義合法操作
+         * 如果有`任何`跟定義不同的情況就會噴錯
+         */
+        $this->loggerShouldLogAccount('joey');
         $this->target->isValid('joey', 'wrong password');
     }
 
@@ -67,6 +73,13 @@ class AuthenticationServiceTest extends TestCase
     {
         $actual = $this->target->isValid($account, $password);
         $this->assertTrue($actual);
+    }
+
+    protected function loggerShouldLogAccount($account): void
+    {
+        $this->mockLogger->shouldReceive('save')->with(m::on(function ($message) use ($account) {
+            return strpos($message, $account) !== false;
+        }))->once();
     }
 
 }
