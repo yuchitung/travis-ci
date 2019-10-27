@@ -10,7 +10,6 @@ namespace Tests {
 
     use App\IBookDao;
     use App\Order;
-    use App\OrderService;
     use App\OrderServiceForTest;
     use PHPUnit\Framework\TestCase;
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -21,27 +20,68 @@ namespace Tests {
     {
 
         use MockeryPHPUnitIntegration;
+        private $target;
+
+        /**
+         * @var m\MockInterface
+         */
+        private $spyBookDao;
+
+        protected function setUp()
+        {
+            parent::setUp();
+            $this->target = new OrderServiceForTest();
+            $this->spyBookDao = m::spy(IBookDao::class);
+            $this->target->setBookDao($this->spyBookDao);
+
+        }
 
         /** @test */
         public function test_sync_book_orders_3_orders_only_2_book_order()
         {
-            $orderServiceForTest = new OrderServiceForTest();
-            $order1 = new Order();
-            $order1->type = 'Book';
-            $order2 = new Order();
-            $order2->type = 'CD';
-            $order3 = new Order();
-            $order3->type = 'Book';
-            $stubOrers = [$order1, $order2, $order3];
-            $orderServiceForTest->setOrders($stubOrers);
+            $this->givenOrders(['Book', 'CD', 'Book']);
 
-            $spyBookDao = m::spy(IBookDao::class);
-            $orderServiceForTest->setBookDao($spyBookDao);
-            $orderServiceForTest->syncBookOrders();
+            $this->target->syncBookOrders();
 
-            $spyBookDao->shouldHaveReceived('insert')->with(m::on(function (Order $order) {
+            $this->shouldInsertBookDao(2);
+        }
+
+        /**
+         * @param $type
+         * @return Order
+         */
+        protected function createOrder($type): Order
+        {
+            $order = new Order();
+            $order->type = $type;
+            return $order;
+        }
+
+        /**
+         * @param $types
+         * @return array
+         */
+        protected function createOrders($types): array
+        {
+            $orders = [];
+            foreach ($types as $type) {
+                $orders[] = $this->createOrder($type);
+            }
+
+            return $orders;
+        }
+
+        protected function givenOrders($types): void
+        {
+            $stubOrders = $this->createOrders($types);
+            $this->target->setOrders($stubOrders);
+        }
+
+        protected function shouldInsertBookDao($times): void
+        {
+            $this->spyBookDao->shouldHaveReceived('insert')->with(m::on(function (Order $order) {
                 return $order->type === 'Book';
-            }))->times(2);
+            }))->times($times);
         }
     }
 
