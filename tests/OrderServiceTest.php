@@ -10,7 +10,7 @@ namespace Tests {
 
     use App\IBookDao;
     use App\Order;
-    use App\OrderServiceForTest;
+    use App\OrderService;
     use PHPUnit\Framework\TestCase;
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
     use Mockery as m;
@@ -30,10 +30,14 @@ namespace Tests {
         protected function setUp()
         {
             parent::setUp();
-            $this->target = new OrderServiceForTest();
-            $this->spyBookDao = m::spy(IBookDao::class);
-            $this->target->setBookDao($this->spyBookDao);
+            /**
+             * 使用 makePartial mock 指定函數，取代自己建立 fake object 的形式
+             */
+            $this->target = m::mock(OrderService::class)->makePartial();
+            $this->target->shouldAllowMockingProtectedMethods();
 
+            $this->spyBookDao = m::spy(IBookDao::class);
+            $this->target->shouldReceive('getBookDao')->andReturn($this->spyBookDao);
         }
 
         /** @test */
@@ -74,7 +78,7 @@ namespace Tests {
         protected function givenOrders($types): void
         {
             $stubOrders = $this->createOrders($types);
-            $this->target->setOrders($stubOrders);
+            $this->target->shouldReceive('getOrders')->andReturn($stubOrders);
         }
 
         protected function shouldInsertBookDao($times): void
@@ -87,38 +91,3 @@ namespace Tests {
 
 }
 
-namespace App {
-    class OrderServiceForTest extends OrderService
-    {
-        private $orders;
-        private $bookDao;
-
-        /**
-         * @param mixed $orders
-         */
-        public function setOrders($orders): void
-        {
-            $this->orders = $orders;
-        }
-
-
-        protected function getOrders()
-        {
-            return $this->orders;
-        }
-
-        /**
-         * @param mixed $bookDao
-         */
-        public function setBookDao($bookDao): void
-        {
-            $this->bookDao = $bookDao;
-        }
-
-        protected function getBookDao(): IBookDao
-        {
-            return $this->bookDao;
-        }
-
-    }
-}
